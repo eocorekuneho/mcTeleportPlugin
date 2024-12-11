@@ -2,8 +2,8 @@
 This is a really simple and basic teleportation system for Paper Minecraft servers.
 
 ## Features
-* Create, edit, list and Home points
-* Create, edit, list and Waypoints
+* Create, edit, list and delete Home points
+* Create, edit, list and delete Waypoints
 * Teleport to Home point or Waypoint.
 * Works between worlds.
 
