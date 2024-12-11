@@ -15,7 +15,7 @@ Home and Waypoints are basically the same, just separated, for convenience.
 | /gohome  | *homeName*  | Teleports the player to *homeName* Home point. If *homeName* is empty, the firstly recorded Home point will be selected.|
 | /gowp  | *waypointName* | Teleports the player to *waypointName* Waypoint. If *waypointName* is empty, the last used Waypoint will be used. |
 | /sethome  | *homeName*  | Creates a Home point for the player with the name *homeName*. If *homeName* is empty, *"default"* will be used. If a Home point with the same name exists, it will be updated. |
-| /setwp  | waypointName | Creates a Waypoint for the player with the name *waypointName*. *waypointName* is mandatory. |
+| /setwp  | waypointName | Creates a Waypoint for the player with the name *waypointName*. *waypointName* is mandatory. If a Waypoint with the same name exists, it will be updated.|
 | /delhome  | homeName  | Deletes the player's Home point with the name *homeName*. *homeName* is mandatory  |
 | /delwp  | waypointName  | Deletes the player's Waypoint with the name *waypointName*. *waypointName* is mandatory  |
 | /listhome  | -  | Lists the player's Home points  |
