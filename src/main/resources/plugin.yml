@@ -1,0 +1,21 @@
+name: TeleportPlugin
+version: 1.0
+main: org.furryhu.mc.pluginteleport.TeleportPlugin
+api-version: 1.19
+commands:
+  gohome:
+    description: Teleport to Home point
+  sethome:
+    description: Set a Home point
+  listhome:
+    description: List Home points
+  delhome:
+    description: Delete a Home point
+  setwp:
+    description: Set a Waypoint
+  listwp:
+    description: List Waypoints
+  delwp:
+    description: Delete a Waypont
+  gowp:
+    description: Teleport to a Waypoint
