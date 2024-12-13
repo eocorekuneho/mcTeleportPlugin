@@ -6,6 +6,7 @@ This is a really simple and basic teleportation system for Paper Minecraft serve
 * Create, edit, list and delete Waypoints
 * Teleport to Home point or Waypoint.
 * Works between worlds.
+* Has a cost in XP, based on distance
 
 Home and Waypoints are basically the same, just separated, for convenience.
 
