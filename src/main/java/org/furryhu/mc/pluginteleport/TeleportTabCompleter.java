@@ -1,5 +1,6 @@
 package org.furryhu.mc.pluginteleport;
 
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -20,12 +21,16 @@ public class TeleportTabCompleter implements TabCompleter {
         }
 
         Player player = (Player) sender;
-
         switch (command.getName().toLowerCase()) {
             case "gohome":
                 if (args.length == 1) {
                     // Suggest home names
                     suggestions.addAll(getHomeNames(player));
+                } else if (args.length == 2) {
+                    String tInfo = getTravelInfo(args[0], player);
+                    if (tInfo != "") {
+                        suggestions.add(tInfo);
+                    }
                 }
                 break;
             case "sethome":
@@ -55,6 +60,11 @@ public class TeleportTabCompleter implements TabCompleter {
                 if (args.length == 1) {
                     // Suggest teleport point names
                     suggestions.addAll(getTeleportPointNames(player));
+                } else if (args.length == 2) {
+                    String tInfo = getTravelInfo(args[0], player);
+                    if (tInfo != "") {
+                        suggestions.add(tInfo);
+                    }
                 }
                 break;
             // Add more cases for other commands as needed
@@ -82,4 +92,47 @@ public class TeleportTabCompleter implements TabCompleter {
         }
         return tpNames;
     }
+
+    private String getTravelInfo(String targetWPName, Player player) {
+        Location wp;
+        if (targetWPName.trim().length() == 0) {
+            return "";
+        }
+        if (TeleportPlugin.homes.get(player.getUniqueId()).containsKey(targetWPName) == false) {
+            if (TeleportPlugin.waypoints.get(player.getUniqueId()).containsKey(targetWPName) == false) {
+                return "";
+            } else {
+                wp = TeleportPlugin.waypoints.get(player.getUniqueId()).get(targetWPName);
+            }
+        } else {
+            wp = TeleportPlugin.homes.get(player.getUniqueId()).get(targetWPName);
+        }
+
+        String tplSameWorld = "This trip's distance is %,d block. This will cost you %,d XP.";
+        String tplDiffWorld = "Your location is in a different world. This will cost you %,d XP.";
+        Location start = player.getLocation();
+        Location end = wp;
+        String msg;
+        List<String> flags = new ArrayList<String>();
+        if (player.getGameMode() != GameMode.SURVIVAL) {
+            flags.add("nonsurvival");
+        }
+        if (start.getWorld() != end.getWorld()) {
+            flags.add("diffworld");
+        }
+        if (flags.contains("diffworld") == false) {
+            int distance = Utils.getDistance(start, end);
+
+            msg = String.format(
+                    tplSameWorld,
+                    distance,
+                    Utils.getCost(distance, flags));
+        } else {
+            msg = String.format(
+                    tplDiffWorld,
+                    Utils.getCost(0, flags));
+        }
+        return msg;
+    }
+
 }

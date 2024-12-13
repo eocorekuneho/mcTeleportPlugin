@@ -1,13 +1,16 @@
 package org.furryhu.mc.pluginteleport;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -50,8 +53,10 @@ public class TeleportCommand implements CommandExecutor {
             // Go to the first home if no name is provided
             if (!playerHomes.isEmpty()) {
                 Location homeLocation = playerHomes.values().iterator().next();
-                player.teleport(homeLocation);
-                player.sendMessage("Teleported to your first Home point.");
+                // player.teleport(homeLocation);
+                if (doTeleport(homeLocation, player)) {
+                    player.sendMessage("Teleported to your first Home point.");
+                }
             } else {
                 player.sendMessage("You have no Home points set.");
             }
@@ -59,8 +64,10 @@ public class TeleportCommand implements CommandExecutor {
             String homeName = args[0];
             Location homeLocation = playerHomes.get(homeName);
             if (homeLocation != null) {
-                player.teleport(homeLocation);
-                player.sendMessage("Teleported to Home point: " + homeName);
+                if (doTeleport(homeLocation, player)) {
+                    // player.teleport(homeLocation);
+                    player.sendMessage("Teleported to Home point: " + homeName);
+                }
             } else {
                 player.sendMessage("Home point not found: " + homeName);
             }
@@ -90,7 +97,8 @@ public class TeleportCommand implements CommandExecutor {
             player.sendMessage("You have no Home points set.");
         } else {
             player.sendMessage("Your Home points:");
-            playerHomes.keySet().forEach(homeName -> player.sendMessage("- " + homeName));
+            playerHomes.keySet().forEach(homeName -> player.sendMessage("- " + homeName + " ("
+                    + Utils.getDistance(player.getLocation(), playerHomes.get(homeName)) + "blk)"));
         }
         return true;
     }
@@ -123,7 +131,7 @@ public class TeleportCommand implements CommandExecutor {
         Location location = player.getLocation();
         TeleportPlugin.waypoints.computeIfAbsent(player.getUniqueId(), k -> new HashMap<>()).put(tpName, location);
         player.sendMessage("Waypoint set: " + tpName);
-        
+
         return true;
     }
 
@@ -134,7 +142,8 @@ public class TeleportCommand implements CommandExecutor {
             player.sendMessage("You have no Waypoints set.");
         } else {
             player.sendMessage("Your Waypoints:");
-            playerTeleports.keySet().forEach(teleportName -> player.sendMessage("- " + teleportName));
+            playerTeleports.keySet().forEach(teleportName -> player.sendMessage("- " + teleportName + " ("
+                    + Utils.getDistance(player.getLocation(), playerTeleports.get(teleportName)) + "blk)"));
         }
         return true;
     }
@@ -158,13 +167,16 @@ public class TeleportCommand implements CommandExecutor {
 
     private boolean handleGoWP(UUID playerUUID, String[] args) {
         Player player = Bukkit.getPlayer(playerUUID);
-        Map<String, Location> playerTeleports = TeleportPlugin.waypoints.getOrDefault(player.getUniqueId(), new HashMap<>());
+        Map<String, Location> playerTeleports = TeleportPlugin.waypoints.getOrDefault(player.getUniqueId(),
+                new HashMap<>());
         if (args.length == 0) {
             String lastTPName = TeleportPlugin.lastUsedTeleport.get(player.getUniqueId());
-            if(lastTPName != null && playerTeleports.containsKey(lastTPName)){
-                player.teleport(playerTeleports.get(lastTPName));
-                player.sendMessage("Teleported to your last Waypoint: " + lastTPName);
-                return true;
+            if (lastTPName != null && playerTeleports.containsKey(lastTPName)) {
+                // player.teleport(playerTeleports.get(lastTPName));
+                if (doTeleport(playerTeleports.get(lastTPName), player)) {
+                    player.sendMessage("Teleported to your last Waypoint: " + lastTPName);
+                    return true;
+                }
             } else {
                 player.sendMessage("Please provide a Waypoint name.");
                 return true;
@@ -174,14 +186,38 @@ public class TeleportCommand implements CommandExecutor {
         String tpName = args[0];
         Location tpLocation = playerTeleports.get(tpName);
         if (tpLocation != null) {
-            player.teleport(tpLocation);
-            player.sendMessage("Teleported to Waypoint: " + tpName);
-            // Update last used teleport point
-            TeleportPlugin.lastUsedTeleport.put(player.getUniqueId(), tpName);
+            // player.teleport(tpLocation);
+            if (doTeleport(tpLocation, player)) {
+                player.sendMessage("Teleported to Waypoint: " + tpName);
+                // Update last used teleport point
+                TeleportPlugin.lastUsedTeleport.put(player.getUniqueId(), tpName);
+            }
         } else {
             player.sendMessage("Waypoint not found: " + tpName);
         }
 
+        return true;
+    }
+
+    public Boolean doTeleport(Location location, Player player) {
+        Location start = player.getLocation();
+        Location end = location;
+        List<String> flags = new ArrayList<String>();
+        if (player.getGameMode() != GameMode.SURVIVAL) {
+            flags.add("nonsurvival");
+        }
+        if (start.getWorld() != end.getWorld()) {
+            flags.add("diffworld");
+        }
+        int cost = Utils.getCost(Utils.getDistance(location, player.getLocation()), flags);
+        int playerExp = Utils.getTotalExperience(player);
+        if (playerExp >= cost) {
+            Utils.setTotalExperience(player, playerExp - cost);
+        } else {
+            player.sendMessage("You don't have enough XP to do this trip. How sad! Costs " + cost + ", but you only have just " + playerExp);
+            return false;
+        }
+        player.teleport(location);
         return true;
     }
 }
